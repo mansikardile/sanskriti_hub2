@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'signup_screen.dart'; // Import the signup file
+import 'signup_screen.dart'; 
+import 'main_navigation.dart'; // Redirect target
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,12 +18,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleLogin() async {
     try {
-      await Supabase.instance.client.auth.signInWithPassword(
+      final response = await Supabase.instance.client.auth.signInWithPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Login Successful!")));
+
+      if (response.user != null && mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainNavigation()),
+        );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
@@ -55,7 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 20),
                   _buildSocialLogins(),
                   const SizedBox(height: 30),
-                  _buildFooter(), // FIXED: This is now here
+                  _buildFooter(),
                 ],
               ),
             ),
@@ -81,11 +86,11 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         Container(
           height: 320,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Colors.transparent, const Color(0xFFFDF9F3)],
+              colors: [Colors.transparent, Color(0xFFFDF9F3)],
             ),
           ),
         ),

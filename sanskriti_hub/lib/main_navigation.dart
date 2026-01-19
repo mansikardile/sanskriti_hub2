@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'learner_dashboard.dart';
 import 'artisan_marketplace.dart';
-import 'stories_screen.dart';
+import 'story_player.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -16,7 +16,7 @@ class _MainNavigationState extends State<MainNavigation> {
   final List<Widget> _pages = [
     const LearnerDashboard(),    // Image 1
     const ArtisanMarketplace(),  // Image 2 & 6
-    const StoriesScreen(),       // Image 5 (Player) & 6 (Feed)
+    const StoryPlayer(),       // Image 5 (Player) & 6 (Feed)
     const Center(child: Text("Profile")),
   ];
 
