@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'signup_screen.dart'; // Import the signup file
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,25 +12,20 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool isLearner = true;
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
-  // Function to handle Supabase Sign In
-  Future<void> _signIn() async {
+  Future<void> _handleLogin() async {
     try {
-      final response = await Supabase.instance.client.auth.signInWithPassword(
+      await Supabase.instance.client.auth.signInWithPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      if (response.user != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login Successful!')),
-        );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Login Successful!")));
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
@@ -40,131 +36,26 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header with Mandala Image
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  height: 350,
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image: NetworkImage('https://images.unsplash.com/photo-1621360841013-c7683c659ec6?q=80&w=1000&auto=format&fit=crop'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                Container(
-                  height: 350,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        const Color(0xFFFDF9F3).withOpacity(0.7),
-                        const Color(0xFFFDF9F3),
-                      ],
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 20,
-                  child: Column(
-                    children: [
-                      Text(
-                        "Namaste",
-                        style: GoogleFonts.philosopher(
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF2C3E50),
-                        ),
-                      ),
-                      Text(
-                        "Preserving Heritage, Empowering Artists",
-                        style: GoogleFonts.lato(
-                          fontSize: 16,
-                          fontStyle: FontStyle.italic,
-                          color: Colors.black54,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            
+            _buildHeader("Namaste", "Preserving Heritage, Empowering Artists"),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Column(
                 children: [
-                  // Role Toggle
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEFE5D8),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(child: _buildToggleItem("I am a Learner", isLearner)),
-                        Expanded(child: _buildToggleItem("I am a Creator", !isLearner)),
-                      ],
-                    ),
-                  ),
+                  _buildToggleButtons(),
                   const SizedBox(height: 30),
-                  
-                  // Input Fields
                   _buildInputLabel("Email or Phone"),
                   _buildTextField(_emailController, "e.g. aditi@sanskriti.com", Icons.person_outline, false),
-                  
                   const SizedBox(height: 20),
-                  
                   _buildInputLabel("Password", hasForgot: true),
                   _buildTextField(_passwordController, "Your secure password", Icons.lock_outline, true),
-                  
                   const SizedBox(height: 30),
-                  
-                  // Sign In Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 55,
-                    child: ElevatedButton(
-                      onPressed: _signIn,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFE67E22),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                      ),
-                      child: const Text("Sign In", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                  
+                  _buildSignInButton(),
                   const SizedBox(height: 25),
-                  const Text("OR CONTINUE WITH", style: TextStyle(fontSize: 12, color: Colors.grey, letterSpacing: 1.2)),
+                  const Text("OR CONTINUE WITH", style: TextStyle(fontSize: 12, color: Colors.grey)),
                   const SizedBox(height: 20),
-                  
-                  // Social Buttons
-                  Row(
-                    children: [
-                      Expanded(child: _buildSocialButton("Google", Icons.g_mobiledata)),
-                      const SizedBox(width: 15),
-                      Expanded(child: _buildSocialButton("Apple", Icons.apple)),
-                    ],
-                  ),
-                  
+                  _buildSocialLogins(),
                   const SizedBox(height: 30),
-                  
-                  // Footer
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("New to Sanskriti Hub? "),
-                      GestureDetector(
-                        onTap: () {},
-                        child: const Text("Create Account", style: TextStyle(color: Color(0xFFE67E22), fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
+                  _buildFooter(), // FIXED: This is now here
                 ],
               ),
             ),
@@ -174,36 +65,73 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildToggleItem(String title, bool active) {
+  Widget _buildHeader(String title, String subtitle) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          height: 320,
+          width: double.infinity,
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: NetworkImage('https://www.shutterstock.com/shutterstock/photos/2657976007/display_1500/stock-vector-colorful-and-vibrant-pattern-mandala-vintage-ornament-colorful-and-intricate-vector-design-2657976007.jpg'),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        Container(
+          height: 320,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.transparent, const Color(0xFFFDF9F3)],
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 10,
+          child: Column(
+            children: [
+              Text(title, style: GoogleFonts.philosopher(fontSize: 48, fontWeight: FontWeight.bold, color: const Color(0xFF2C3E50))),
+              Text(subtitle, style: GoogleFonts.lato(fontSize: 14, color: Colors.black54)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildToggleButtons() {
+    return Container(
+      decoration: BoxDecoration(color: const Color(0xFFEFE5D8), borderRadius: BorderRadius.circular(30)),
+      child: Row(
+        children: [
+          Expanded(child: _toggleItem("I am a Learner", isLearner)),
+          Expanded(child: _toggleItem("I am a Creator", !isLearner)),
+        ],
+      ),
+    );
+  }
+
+  Widget _toggleItem(String title, bool active) {
     return GestureDetector(
       onTap: () => setState(() => isLearner = !isLearner),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 15),
-        decoration: BoxDecoration(
-          color: active ? const Color(0xFFE67E22) : Colors.transparent,
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: Center(
-          child: Text(
-            title,
-            style: TextStyle(color: active ? Colors.white : Colors.black54, fontWeight: FontWeight.bold),
-          ),
-        ),
+        decoration: BoxDecoration(color: active ? const Color(0xFFE67E22) : Colors.transparent, borderRadius: BorderRadius.circular(30)),
+        child: Center(child: Text(title, style: TextStyle(color: active ? Colors.white : Colors.black54, fontWeight: FontWeight.bold))),
       ),
     );
   }
 
   Widget _buildInputLabel(String label, {bool hasForgot = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
-          if (hasForgot)
-            const Text("Forgot?", style: TextStyle(color: Color(0xFF16A085), fontWeight: FontWeight.bold)),
-        ],
-      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        if (hasForgot) const Text("Forgot?", style: TextStyle(color: Color(0xFF16A085), fontWeight: FontWeight.bold)),
+      ],
     );
   }
 
@@ -221,16 +149,36 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildSocialButton(String text, IconData icon) {
-    return OutlinedButton.icon(
-      onPressed: () {},
-      icon: Icon(icon, color: Colors.black),
-      label: Text(text, style: const TextStyle(color: Colors.black)),
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        side: const BorderSide(color: Colors.grey),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+  Widget _buildSignInButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 55,
+      child: ElevatedButton(
+        onPressed: _handleLogin,
+        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE67E22), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))),
+        child: const Text("Sign In", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
       ),
+    );
+  }
+
+  Widget _buildSocialLogins() {
+    return Row(children: [
+      Expanded(child: OutlinedButton.icon(onPressed: () {}, icon: const Icon(Icons.g_mobiledata), label: const Text("Google"))),
+      const SizedBox(width: 15),
+      Expanded(child: OutlinedButton.icon(onPressed: () {}, icon: const Icon(Icons.apple), label: const Text("Apple"))),
+    ]);
+  }
+
+  Widget _buildFooter() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text("New to Sanskriti Hub? "),
+        GestureDetector(
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SignupScreen())),
+          child: const Text("Create Account", style: TextStyle(color: Color(0xFFE67E22), fontWeight: FontWeight.bold)),
+        ),
+      ],
     );
   }
 }
